@@ -72,11 +72,3 @@ func handle_walk() -> void:
 		velocity.x = walk_speed
 	else:
 		velocity.x = 0
-
-
-func _ready() -> void:
-	pass
-
-
-func _process(delta: float) -> void:
-	pass
