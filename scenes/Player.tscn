@@ -9,8 +9,8 @@ size = Vector2(100, 76)
 [node name="CharacterBody2D" type="CharacterBody2D"]
 script = ExtResource("1_ay5dr")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
-texture = ExtResource("2_bntau")
-
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("RectangleShape2D_j062x")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_bntau")
