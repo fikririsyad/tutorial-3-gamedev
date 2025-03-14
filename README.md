@@ -1,4 +1,4 @@
-# Tutorial 2 - Game Development
+# Tutorial 3 - Game Development
 
 Nama: Fikri Risyad Indratno<br>
 NPM: 2206031170
@@ -83,3 +83,58 @@ func start_dash(direction: int) -> void:
 ### Referensi
 - [Double jump](https://forum.godotengine.org/t/how-to-double-jump/4562#:~:text=Something%20like%2C%20can_doublejump)
 - [Dash](https://www.youtube.com/watch?v=GpLy_e1s14A)
+
+# Tutorial 5 - Game Development
+
+## Latihan Mandiri: Membuat dan Menambah Variasi Aset
+
+Pertama-tama, saya mengunduh *assets* dari [kenney](https://kenney.nl/assets/platformer-characters), memilih assets `female_vector.svg`, dan memasukkannya ke dalam direktori `assets`. Setelah itu, saya membuat *scene* `NewPlayer.tscn` yang merupakan `CharacterBody2D` dengan *child* `CollisionShape2D`, `AnimatedSprite2D`, dan `AudioStreamPlayer2D`. Untuk `AnimatedSprite2D`, saya menambahkan `SpriteFrame` baru dan membuat animasi untuk *idle* dan *walk right*. Untuk `CollisionShape2D`, saya membuat sebuah persegi panjang yang ukurannya mengikuti karakter tersebut. Untuk `AudioStreamPlayer2D`, saya memasukkan aset audio baru bernama `hit.wav` yang akan dimainkan ketika `Enemy` ditabrak oleh `Player`. Saya membuat *script* untuk `NewPlayer` yang berisi fungsi `pushed`. Fungsi ini akan menggeser `NewPlayer` ke arah berlawanan dari arah ia disentuh. Ketika fungsi ini dipanggil, akan terdengar SFX dan `NewPlayer` akan memainkan suatu animasi terdorong sebelum kembali ke animasi berdiri. Berikut adalah *script* untuk `NewPlayer`:
+```
+extends CharacterBody2D
+
+@export var GRAVITY := 1200
+@export var knockback_strength := 350
+@export var friction := 1000
+var is_knocked: bool = false
+
+func pushed(direction: Vector2) -> void:
+	if is_knocked:
+		return
+	
+	velocity = direction * knockback_strength
+	
+	$AnimatedSprite2D.flip_h = direction.x > 0
+	$AnimatedSprite2D.play("pushed")
+	$AudioStreamPlayer2D.play()
+	is_knocked = true
+	
+	await get_tree().create_timer(0.5).timeout
+	$AnimatedSprite2D.play("idle")
+	is_knocked = false
+
+func _physics_process(delta: float) -> void:
+	velocity.y += GRAVITY * delta
+	
+	if is_knocked:
+		velocity.x = move_toward(velocity.x, 0, friction * delta)
+	
+	move_and_slide()
+```
+
+Pada *scene* `Main.tscn` saya memasukkan audio baru untuk dijadikan sebagai musik latar bernama `bgm.wav` dan ini akan menggantikan musik latar yang digunakan sebelumnya. Saya juga menambahkan *child* berupa `NewPlayer` pada `Main` *scene*. Saya menambahkan fungsi `check_collision` pada *script* `Player` yang akan mengecek apabila `Player` bertabrakan dengan `Enemy` atau tidak, dan jika bertabrakan, fungsi `pushed` pada `Enemy` akan dijalankan. Berikut adalah fungsi `check_collision`:
+```
+func check_collision():
+	for i in get_slide_collision_count():
+		var collision = get_slide_collision(i)
+		var collider = collision.get_collider()
+		if collider.name == "NewPlayer":  # Use class_name check
+			var knockback_direction = (collider.global_position - global_position).normalized()
+			var knockback_dir = Vector2(sign(knockback_direction.x), 0)
+			collider.pushed(knockback_dir)
+
+func _physics_process(delta: float) -> void:
+	_get_input()
+	velocity.y += GRAVITY * delta
+	move_and_slide()
+	check_collision()
+```
